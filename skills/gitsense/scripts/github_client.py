@@ -19,8 +19,8 @@ from typing import Any
 import httpx
 
 GITHUB_API = "https://api.github.com"
-MAX_RETRIES = 3
-RETRY_BASE_SLEEP = 5  # seconds
+MAX_RETRIES = 4
+RETRY_BASE_SLEEP = 10  # seconds (10 → 20 → 40 → 80)
 
 
 def _request_with_retry(
