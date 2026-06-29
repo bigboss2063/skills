@@ -26,9 +26,6 @@ related_skills: []
 ```bash
 # From this skill's scripts directory:
 cd skills/gitsense/scripts
-
-# Or use the full path:
-SKILL_DIR=/root/bigboss-skills/skills/gitsense/scripts
 ```
 
 ## Workflows
@@ -59,7 +56,7 @@ There are **4 workflows**, each mapping to one original GitSense subcommand:
 
 **Example invocation**:
 ```bash
-cd /root/bigboss-skills/skills/gitsense/scripts && python3 -c "
+cd skills/gitsense/scripts && python3 -c "
 from finder_data import fetch_candidates
 import json
 candidates = fetch_candidates(
@@ -94,7 +91,7 @@ print(json.dumps(candidates, indent=2))
 
 **Example invocation**:
 ```bash
-cd /root/bigboss-skills/skills/gitsense/scripts && python3 -c "
+cd skills/gitsense/scripts && python3 -c "
 from finder_data import scan_repo_issues
 import json
 issues = scan_repo_issues(
@@ -125,7 +122,7 @@ print(json.dumps(issues, indent=2))
 
 **Example invocation** (single repo):
 ```bash
-cd /root/bigboss-skills/skills/gitsense/scripts && python3 -c "
+cd skills/gitsense/scripts && python3 -c "
 from radar import analyze_repo, render_markdown, render_json
 report = analyze_repo('vllm-project/vllm', skills=['python', 'cuda'], days=90)
 print(render_markdown([report]))
@@ -134,7 +131,7 @@ print(render_markdown([report]))
 
 **Example invocation** (batch from file):
 ```bash
-cd /root/bigboss-skills/skills/gitsense/scripts && python3 -c "
+cd skills/gitsense/scripts && python3 -c "
 from radar import analyze_repo, load_target_repos, render_markdown
 repos = load_target_repos('/path/to/targets.txt')
 reports = [analyze_repo(r, skills=['python', 'agents'], days=90) for r in repos]
@@ -179,7 +176,7 @@ print(render_markdown(reports))
 
 **Example invocation**:
 ```bash
-cd /root/bigboss-skills/skills/gitsense/scripts && python3 -c "
+cd skills/gitsense/scripts && python3 -c "
 from predictor import parse_pr_ref, analyze_pr, derive_review_decision, files_touch_tests
 from github_client import get_pull_request, get_pull_request_reviews, get_pull_request_files, get_commit_status_state
 
@@ -250,7 +247,7 @@ pip install httpx
 ### Script import errors
 Make sure you're running from `skills/gitsense/scripts/` so relative imports resolve:
 ```bash
-cd /root/bigboss-skills/skills/gitsense/scripts && python3 -c "from radar import analyze_repo; ..."
+cd skills/gitsense/scripts && python3 -c "from radar import analyze_repo; ..."
 ```
 
 ## License

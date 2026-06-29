@@ -13,11 +13,39 @@ from __future__ import annotations
 
 import os
 import subprocess
+import time
 from typing import Any
 
 import httpx
 
 GITHUB_API = "https://api.github.com"
+MAX_RETRIES = 3
+RETRY_BASE_SLEEP = 5  # seconds
+
+
+def _request_with_retry(
+    method: str,
+    url: str,
+    max_retries: int = MAX_RETRIES,
+    **kwargs: Any,
+) -> httpx.Response:
+    """Make an HTTP request with exponential backoff on 403/secondary rate limits."""
+    for attempt in range(max_retries):
+        resp = httpx.request(method, url, **kwargs)
+        if resp.status_code == 403 and attempt < max_retries - 1:
+            wait = RETRY_BASE_SLEEP * (2 ** attempt)
+            print(
+                f"[gitsense] rate limited (HTTP 403), retrying in {wait}s "
+                f"(attempt {attempt + 1}/{max_retries})",
+                file=__import__("sys").stderr,
+            )
+            time.sleep(wait)
+            continue
+        resp.raise_for_status()
+        return resp
+    # Should not reach here, but just in case:
+    resp.raise_for_status()
+    return resp  # type: ignore[unreachable]
 
 
 def _get_token() -> str | None:
@@ -53,25 +81,25 @@ def search_issues(
     Uses the GitHub Search API:
     https://docs.github.com/en/rest/search/search#search-issues-and-pull-requests
     """
-    resp = httpx.get(
+    resp = _request_with_retry(
+        "GET",
         f"{GITHUB_API}/search/issues",
         params={"q": query, "sort": sort, "order": order, "per_page": per_page},
         headers=_get_headers(),
         timeout=30,
     )
-    resp.raise_for_status()
     return resp.json().get("items", [])
 
 
 def search_issue_count(query: str) -> int:
     """Return the total count for a GitHub issue/PR search."""
-    resp = httpx.get(
+    resp = _request_with_retry(
+        "GET",
         f"{GITHUB_API}/search/issues",
         params={"q": query, "per_page": 1},
         headers=_get_headers(),
         timeout=30,
     )
-    resp.raise_for_status()
     return int(resp.json().get("total_count", 0))
 
 

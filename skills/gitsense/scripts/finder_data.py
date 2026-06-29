@@ -7,10 +7,16 @@ own reasoning to rank candidates instead of an external LLM call.
 
 from __future__ import annotations
 
+import sys
+import os
+import time
 from datetime import date, timedelta
 from typing import Any
 
-from .github_client import search_issues
+import httpx
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from github_client import search_issues
 
 
 def build_search_queries(
@@ -68,11 +74,18 @@ def fetch_candidates(
 
     seen_urls = set()
     candidates = []
+    errors: list[str] = []
 
-    for query in queries:
+    for i, query in enumerate(queries):
+        if i > 0:
+            time.sleep(1.5)  # avoid GitHub secondary rate limit
         try:
             issues = search_issues(query, per_page=min(max_results, 20))
-        except Exception:
+        except httpx.HTTPStatusError as e:
+            errors.append(f"HTTP {e.response.status_code} for query: {query[:80]}...")
+            continue
+        except Exception as e:
+            errors.append(f"Unexpected error: {e}")
             continue
 
         for issue in issues:
@@ -97,6 +110,11 @@ def fetch_candidates(
                 "updated_at": issue.get("updated_at", "")[:10],
                 "body": (issue.get("body") or "")[:1000],
             })
+
+    if errors:
+        import sys as _sys
+        for err in errors:
+            print(f"[gitsense] {err}", file=_sys.stderr)
 
     return candidates[:max_results]
 

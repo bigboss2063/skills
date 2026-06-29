@@ -5,6 +5,8 @@ Ported directly from GitSense (https://github.com/he-yufeng/GitSense) — MIT li
 
 from __future__ import annotations
 
+import sys
+import os
 import json
 import re
 from dataclasses import asdict, dataclass, field
@@ -12,7 +14,8 @@ from datetime import date, datetime, timedelta, timezone
 from statistics import median
 from typing import Any
 
-from .github_client import (
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from github_client import (
     get_issue_comments,
     get_repo_info,
     get_repo_languages,
