@@ -2,11 +2,17 @@
 
 Ported from GitSense (https://github.com/he-yufeng/GitSense) — MIT license.
 Uses httpx for direct HTTP calls. Designed to be run from Hermes terminal().
+
+Token resolution order:
+  1. GITHUB_TOKEN environment variable
+  2. GH_TOKEN environment variable
+  3. ``gh auth token`` CLI output (if gh is installed and authenticated)
 """
 
 from __future__ import annotations
 
 import os
+import subprocess
 from typing import Any
 
 import httpx
@@ -14,8 +20,22 @@ import httpx
 GITHUB_API = "https://api.github.com"
 
 
-def _get_headers() -> dict[str, str]:
+def _get_token() -> str | None:
+    """Resolve a GitHub token from env vars or gh CLI."""
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        return token
+    try:
+        return subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True, text=True, timeout=5,
+        ).stdout.strip() or None
+    except (FileNotFoundError, subprocess.TimeoutExpired, subprocess.CalledProcessError):
+        return None
+
+
+def _get_headers() -> dict[str, str]:
+    token = _get_token()
     headers = {"Accept": "application/vnd.github+json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"

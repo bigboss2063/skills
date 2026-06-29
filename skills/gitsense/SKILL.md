@@ -12,10 +12,10 @@ related_skills: []
 
 ## Prerequisites
 
-1. **`GITHUB_TOKEN`** environment variable (recommended — 30 req/min vs 10 without)
-   ```bash
-   export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-   ```
+1. **GitHub token** — automatically resolved from (in order):
+   - `GITHUB_TOKEN` environment variable
+   - `GH_TOKEN` environment variable
+   - `gh auth token` — if `gh` CLI is installed and authenticated (no env var needed)
 2. **`httpx`** Python package (for scripts)
    ```bash
    pip install httpx
